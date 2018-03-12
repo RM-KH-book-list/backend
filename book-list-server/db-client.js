@@ -7,7 +7,9 @@ const pg = require('pg');
 const Client = pg.Client;
 
 const client = new Client(DATABASE_URL);
-client.connect();
+client.connect()
+    .then(() => console.log('connected to db', DATABASE_URL))
+    .catch(err => console.error('connection error', err));
 
 client.on('error', err => console.error(err));
 
