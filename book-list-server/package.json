@@ -9,7 +9,9 @@
     "create-tables": "node load-db/create-tables.js",
     "redo-tables": "npm run drop-tables && npm run create-tables",
     "seed-data": "node load-db/seed-data.js",
-    "db-load-all": "npm run redo-tables && npm run seed-data"
+    "db-load-all": "npm run redo-tables && npm run seed-data",
+    "start": "node server.js",
+    "watch": "nodemon server.js"
   },
   "repository": {
     "type": "git",

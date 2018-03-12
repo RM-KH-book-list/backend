@@ -8,7 +8,7 @@ const Client = pg.Client;
 
 const client = new Client(DATABASE_URL);
 client.connect()
-    .then(() => console.log('connected to db', DATABASE_URL))
+    .then(() => console.log('connected to db'))
     .catch(err => console.error('connection error', err));
 
 client.on('error', err => console.error(err));
