@@ -32,6 +32,27 @@ app.get('/api/v1/books', (request, response) => {
         });
 });
 
+app.post('/api/v1/books', (request, response) => {
+    const body = request.body;
+    client.query(`
+        INSERT INTO books (title, author, image_url, isbn, description)
+        VALUES ($1,$2,$3,$4,$5)
+        RETURNING book_id, title, author, image_url, isbn, description;
+    `,[
+        body.title,
+        body.author,
+        body.image_url,
+        body.isbn,
+        body.description
+    ]
+    )
+        .then(result => response.send(result.rows[0]))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
 app.listen(PORT, () => {
     console.log('Server running on port', PORT);
 });
