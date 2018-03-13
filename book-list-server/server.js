@@ -20,10 +20,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const client = require('./db-client');
 
-app.get('/test', (request,response) => {
-    response.send('Hello Test Route');
-});
-
 app.get('/api/v1/books', (request, response) => {
     client.query(`
     SELECT book_id, title, author, image_url
