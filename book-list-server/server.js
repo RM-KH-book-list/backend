@@ -83,6 +83,34 @@ app.delete('/api/v1/books/:id', (request, response) => {
         });
 });
 
+app.put('/api/v1/books/:id', (request, response) => {
+    const body = request.body;
+
+    client.query(`
+        UPDATE books
+        SET title=$1,
+        author=$2,
+        image_url=$3,
+        isbn=$4,
+        description=$5
+        WHERE book_id=$6
+        RETURNING book_id,title,author,image_url,isbn,description;
+    `,
+    [body.title,
+        body.author,
+        body.image_url,
+        body.isbn,
+        body.description,
+        request.params.id
+    ]
+    )
+        .then(result => response.send(result.rows[0]))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
 app.listen(PORT, () => {
     console.log('Server running on port', PORT);
 });
