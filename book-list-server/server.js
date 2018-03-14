@@ -67,6 +67,22 @@ app.post('/api/v1/books', (request, response) => {
         });
 });
 
+app.delete('/api/v1/books/:id', (request, response) => {
+    const id = request.params.id;
+
+    client.query(`
+        DELETE FROM books
+        WHERE book_id = $1;
+    `,
+    [id]
+    )
+        .then(result => response.send({ removed: result.rowCount !== 0 }))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
 app.listen(PORT, () => {
     console.log('Server running on port', PORT);
 });
