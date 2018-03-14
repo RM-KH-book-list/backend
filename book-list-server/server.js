@@ -32,6 +32,20 @@ app.get('/api/v1/books', (request, response) => {
         });
 });
 
+app.get('/api/v1/books/:id', (request, response) => {
+    client.query(`
+    SELECT book_id, title, author, image_url, isbn, description
+    FROM books
+    WHERE book_id = $1;
+    `, [request.params.id])
+        .then(result => response.send(result.rows[0]))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
+
 app.post('/api/v1/books', (request, response) => {
     const body = request.body;
     client.query(`
