@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "drop-tables": "node load-db/drop-tables.js",
-    "create-tables": "node load-db/create-tables.js",
+    "drop-tables": "node book-list-server/load-db/drop-tables.js",
+    "create-tables": "node book-list-server/load-db/create-tables.js",
     "redo-tables": "npm run drop-tables && npm run create-tables",
-    "seed-data": "node load-db/seed-data.js",
+    "seed-data": "node book-list-server/load-db/seed-data.js",
     "db-load-all": "npm run redo-tables && npm run seed-data",
-    "start": "node server.js",
-    "watch": "nodemon server.js"
+    "start": "node book-list-server/server.js",
+    "watch": "nodemon book-list-server/server.js"
   },
   "repository": {
     "type": "git",
