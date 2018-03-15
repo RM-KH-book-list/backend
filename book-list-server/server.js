@@ -7,10 +7,14 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
+
 
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const sa = require('superagent');
 
 const app = express();
 
@@ -57,6 +61,10 @@ app.get('/api/v1/books/:id', (request, response) => {
             console.error(err);
             response.sendStatus(500);
         });
+});
+
+app.get('/api/v1/books/find', request, response, next => {
+    
 });
 
 
