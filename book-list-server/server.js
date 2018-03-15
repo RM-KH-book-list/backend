@@ -6,6 +6,7 @@ dotenv.config();
 //const DATABASE_URL = process.env.DATABASE_URL;
 
 const PORT = process.env.PORT || 3000;
+const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
 
 const express = require('express');
 const morgan = require('morgan');
@@ -19,6 +20,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const client = require('./db-client');
+
+function ensureAdmin(request, response, next) {
+    const token = request.get('token') || request.query.token;
+    if (!token) next({ status: 401, message: 'no token found' });
+    else if (token !== ADMIN_PASSPHRASE) next({ status: 403, message: 'unauthorized' });
+    else next();
+}
+
+app.get('/api/v1/admin', (request, response) => {
+    ensureAdmin(request, response, err => {
+        response.send({ admin: !err });
+    });
+});
 
 app.get('/api/v1/books', (request, response) => {
     client.query(`
@@ -58,6 +72,50 @@ app.post('/api/v1/books', (request, response) => {
         body.image_url,
         body.isbn,
         body.description
+    ]
+    )
+        .then(result => response.send(result.rows[0]))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
+app.delete('/api/v1/books/:id', (request, response) => {
+    const id = request.params.id;
+
+    client.query(`
+        DELETE FROM books
+        WHERE book_id = $1;
+    `,
+    [id]
+    )
+        .then(result => response.send({ removed: result.rowCount !== 0 }))
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
+});
+
+app.put('/api/v1/books/:id', (request, response) => {
+    const body = request.body;
+
+    client.query(`
+        UPDATE books
+        SET title=$1,
+        author=$2,
+        image_url=$3,
+        isbn=$4,
+        description=$5
+        WHERE book_id=$6
+        RETURNING book_id,title,author,image_url,isbn,description;
+    `,
+    [body.title,
+        body.author,
+        body.image_url,
+        body.isbn,
+        body.description,
+        request.params.id
     ]
     )
         .then(result => response.send(result.rows[0]))
