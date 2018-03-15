@@ -28,7 +28,7 @@ function ensureAdmin(request, response, next) {
     else next();
 }
 
-app.get('/api/admin', (request, response) => {
+app.get('/api/v1/admin', (request, response) => {
     ensureAdmin(request, response, err => {
         response.send({ admin: !err });
     });
