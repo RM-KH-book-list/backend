@@ -38,6 +38,34 @@ app.get('/api/v1/admin', (request, response) => {
     });
 });
 
+app.get('/api/v1/books/find', (request, response, next) => {
+    console.log('got here');
+    const search = request.query.search;
+    if(!search) return next({ status: 400, message: 'search query must be provided'});
+                    
+    sa.get(GOOGLE_API_URL)
+        .query({
+            q: search.trim(),
+            key: GOOGLE_API_KEY
+        })
+        .then(res => {
+            const body = res.body;
+            const formatted = {
+                books: body.items.map(volume => {
+                    return {
+                        title: volume.volumeInfo.title,
+                        author: volume.volumeInfo.authors[0],
+                        isbn: volume.volumeInfo.industryIdentifiers[1].type + ' ' + volume.volumeInfo.industryIdentifiers[1].identifier,
+                        image_url: volume.volumeInfo.imageLinks.thumbnail,
+                        description: volume.volumeInfo.description
+                    };
+                })
+            };
+            response.send(formatted);
+        })
+        .catch(next);
+});
+
 app.get('/api/v1/books', (request, response) => {
     client.query(`
     SELECT book_id, title, author, image_url
@@ -49,6 +77,7 @@ app.get('/api/v1/books', (request, response) => {
             response.sendStatus(500);
         });
 });
+
 
 app.get('/api/v1/books/:id', (request, response) => {
     client.query(`
@@ -63,9 +92,7 @@ app.get('/api/v1/books/:id', (request, response) => {
         });
 });
 
-app.get('/api/v1/books/find', request, response, next => {
-    
-});
+
 
 
 app.post('/api/v1/books', (request, response) => {
