@@ -6,6 +6,7 @@ dotenv.config();
 //const DATABASE_URL = process.env.DATABASE_URL;
 
 const PORT = process.env.PORT || 3000;
+const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
 
 const express = require('express');
 const morgan = require('morgan');
@@ -19,6 +20,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const client = require('./db-client');
+
+function ensureAdmin(request, response, next) {
+    const token = request.get('token') || request.query.token;
+    if (!token) next({ status: 401, message: 'no token found' });
+    else if (token !== ADMIN_PASSPHRASE) next({ status: 403, message: 'unauthorized' });
+    else next();
+}
+
+app.get('/api/admin', (request, response) => {
+    ensureAdmin(request, response, err => {
+        response.send({ admin: !err });
+    });
+});
 
 app.get('/api/v1/books', (request, response) => {
     client.query(`
