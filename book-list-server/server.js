@@ -56,16 +56,19 @@ app.get('/api/v1/books/find', (request, response, next) => {
                 books: body.items.map(volume => {
                     return {
                         title: volume.volumeInfo.title,
-                        author: volume.volumeInfo.authors[0],
+                        author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
                         isbn: volume.volumeInfo.industryIdentifiers[0].type + ' ' + volume.volumeInfo.industryIdentifiers[0].identifier,
                         image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
-                        description: volume.volumeInfo.description
+                        description: volume.volumeInfo.description || null
                     };
                 })
             };
             response.send(formatted);
         })
-        .catch(next);
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
 });
 
 app.get('/api/v1/books', (request, response) => {
