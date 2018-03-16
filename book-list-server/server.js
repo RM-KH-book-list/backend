@@ -7,8 +7,10 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
+// const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_KEY = 'AIzaSyCVlRuCB3RftI49iVl2lyu8m15AubMDl60';
+// const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
+const GOOGLE_API_URL = 'https://www.googleapis.com/books/v1/volumes?q=';
 
 
 const express = require('express');
@@ -39,8 +41,8 @@ app.get('/api/v1/admin', (request, response) => {
 });
 
 app.get('/api/v1/books/find', (request, response, next) => {
-    console.log('got here');
     const search = request.query.search;
+    console.log(search);
     if(!search) return next({ status: 400, message: 'search query must be provided'});
                     
     sa.get(GOOGLE_API_URL)
