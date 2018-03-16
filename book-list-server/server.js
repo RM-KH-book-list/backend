@@ -10,7 +10,7 @@ const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
 // const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const GOOGLE_API_KEY = 'AIzaSyCVlRuCB3RftI49iVl2lyu8m15AubMDl60';
 // const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
-const GOOGLE_API_URL = 'https://www.googleapis.com/books/v1/volumes?q=';
+const GOOGLE_API_URL = 'https://www.googleapis.com/books/v1/volumes';
 
 
 const express = require('express');
@@ -57,8 +57,8 @@ app.get('/api/v1/books/find', (request, response, next) => {
                     return {
                         title: volume.volumeInfo.title,
                         author: volume.volumeInfo.authors[0],
-                        isbn: volume.volumeInfo.industryIdentifiers[1].type + ' ' + volume.volumeInfo.industryIdentifiers[1].identifier,
-                        image_url: volume.volumeInfo.imageLinks.thumbnail,
+                        isbn: volume.volumeInfo.industryIdentifiers[0].type + ' ' + volume.volumeInfo.industryIdentifiers[0].identifier,
+                        image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
                         description: volume.volumeInfo.description
                     };
                 })
