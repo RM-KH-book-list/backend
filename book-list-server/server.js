@@ -42,7 +42,6 @@ app.get('/api/v1/admin', (request, response) => {
 
 app.get('/api/v1/books/find', (request, response, next) => {
     const search = request.query.search;
-    console.log(search);
     if(!search) return next({ status: 400, message: 'search query must be provided'});
                     
     sa.get(GOOGLE_API_URL)
@@ -57,7 +56,7 @@ app.get('/api/v1/books/find', (request, response, next) => {
                     return {
                         title: volume.volumeInfo.title,
                         author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
-                        isbn: volume.volumeInfo.industryIdentifiers[0].type + ' ' + volume.volumeInfo.industryIdentifiers[0].identifier,
+                        isbn: `${volume.volumeInfo.industryIdentifiers[0].identifier}`,
                         image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
                         description: volume.volumeInfo.description || null
                     };
@@ -83,7 +82,6 @@ app.get('/api/v1/books', (request, response) => {
         });
 });
 
-
 app.get('/api/v1/books/:id', (request, response) => {
     client.query(`
     SELECT book_id, title, author, image_url, isbn, description
@@ -97,29 +95,30 @@ app.get('/api/v1/books/:id', (request, response) => {
         });
 });
 
-
-
-
 app.post('/api/v1/books', (request, response) => {
     const body = request.body;
-    client.query(`
-        INSERT INTO books (title, author, image_url, isbn, description)
-        VALUES ($1,$2,$3,$4,$5)
-        RETURNING book_id, title, author, image_url, isbn, description;
-    `,[
-        body.title,
-        body.author,
-        body.image_url,
-        body.isbn,
-        body.description
-    ]
-    )
-        .then(result => response.send(result.rows[0]))
+    insertBook(body)
+        .then(result => response.send(result))
         .catch(err => {
             console.error(err);
             response.sendStatus(500);
         });
 });
+
+function insertBook(book) {
+    return client.query(`
+        INSERT INTO books (title, author, image_url, isbn, description)
+        VALUES ($1,$2,$3,$4,$5)
+        RETURNING book_id, title, author, image_url, isbn::text, description;
+    `,[
+        book.title,
+        book.author,
+        book.image_url,
+        book.isbn,
+        book.description
+    ])
+        .then(result => (result.rows[0]));
+}
 
 app.delete('/api/v1/books/:id', (request, response) => {
     const id = request.params.id;
@@ -163,6 +162,27 @@ app.put('/api/v1/books/:id', (request, response) => {
             console.error(err);
             response.sendStatus(500);
         });
+});
+
+app.put('/api/v1/books/import/:isbn', (request, response, next) => {
+    const isbn = request.params.isbn;
+    sa.get(GOOGLE_API_URL)
+        .query({
+            q: `isbn:${isbn}`,
+            key: GOOGLE_API_KEY
+        })
+        .then(res => {
+            const volume = res.body.items[0];
+            return insertBook({
+                title: volume.volumeInfo.title,
+                author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
+                isbn: isbn,
+                image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
+                description: volume.volumeInfo.description || null
+            });
+        })
+        .then(result => response.send(result))
+        .catch(next);
 });
 
 app.listen(PORT, () => {
