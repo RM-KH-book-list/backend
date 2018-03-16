@@ -3,14 +3,16 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-//const DATABASE_URL = process.env.DATABASE_URL;
-
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
+
 
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const sa = require('superagent');
 
 const app = express();
 
@@ -32,6 +34,36 @@ app.get('/api/v1/admin', (request, response) => {
     ensureAdmin(request, response, err => {
         response.send({ admin: !err });
     });
+});
+
+app.get('/api/v1/books/find', (request, response, next) => {
+    const search = request.query.search;
+    if(!search) return next({ status: 400, message: 'search query must be provided'});
+                    
+    sa.get(GOOGLE_API_URL)
+        .query({
+            q: search.trim(),
+            key: GOOGLE_API_KEY
+        })
+        .then(res => {
+            const body = res.body;
+            const formatted = {
+                books: body.items.map(volume => {
+                    return {
+                        title: volume.volumeInfo.title,
+                        author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
+                        isbn: `${volume.volumeInfo.industryIdentifiers[0].identifier}`,
+                        image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
+                        description: volume.volumeInfo.description || null
+                    };
+                })
+            };
+            response.send(formatted);
+        })
+        .catch(err => {
+            console.error(err);
+            response.sendStatus(500);
+        });
 });
 
 app.get('/api/v1/books', (request, response) => {
@@ -59,27 +91,30 @@ app.get('/api/v1/books/:id', (request, response) => {
         });
 });
 
-
 app.post('/api/v1/books', (request, response) => {
     const body = request.body;
-    client.query(`
-        INSERT INTO books (title, author, image_url, isbn, description)
-        VALUES ($1,$2,$3,$4,$5)
-        RETURNING book_id, title, author, image_url, isbn, description;
-    `,[
-        body.title,
-        body.author,
-        body.image_url,
-        body.isbn,
-        body.description
-    ]
-    )
-        .then(result => response.send(result.rows[0]))
+    insertBook(body)
+        .then(result => response.send(result))
         .catch(err => {
             console.error(err);
             response.sendStatus(500);
         });
 });
+
+function insertBook(book) {
+    return client.query(`
+        INSERT INTO books (title, author, image_url, isbn, description)
+        VALUES ($1,$2,$3,$4,$5)
+        RETURNING book_id, title, author, image_url, isbn, description;
+    `,[
+        book.title,
+        book.author,
+        book.image_url,
+        book.isbn,
+        book.description
+    ])
+        .then(result => (result.rows[0]));
+}
 
 app.delete('/api/v1/books/:id', (request, response) => {
     const id = request.params.id;
@@ -123,6 +158,27 @@ app.put('/api/v1/books/:id', (request, response) => {
             console.error(err);
             response.sendStatus(500);
         });
+});
+
+app.put('/api/v1/books/import/:isbn', (request, response, next) => {
+    const isbn = request.params.isbn;
+    sa.get(GOOGLE_API_URL)
+        .query({
+            q: `isbn:${isbn}`,
+            key: GOOGLE_API_KEY
+        })
+        .then(res => {
+            const volume = res.body.items[0];
+            return insertBook({
+                title: volume.volumeInfo.title,
+                author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
+                isbn: isbn,
+                image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
+                description: volume.volumeInfo.description || null
+            });
+        })
+        .then(result => response.send(result))
+        .catch(next);
 });
 
 app.listen(PORT, () => {
