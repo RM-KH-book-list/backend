@@ -3,14 +3,10 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-//const DATABASE_URL = process.env.DATABASE_URL;
-
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE;
-// const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
-const GOOGLE_API_KEY = 'AIzaSyCVlRuCB3RftI49iVl2lyu8m15AubMDl60';
-// const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
-const GOOGLE_API_URL = 'https://www.googleapis.com/books/v1/volumes';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_URL = process.env.GOOGLE_API_URL;
 
 
 const express = require('express');
@@ -109,7 +105,7 @@ function insertBook(book) {
     return client.query(`
         INSERT INTO books (title, author, image_url, isbn, description)
         VALUES ($1,$2,$3,$4,$5)
-        RETURNING book_id, title, author, image_url, isbn::text, description;
+        RETURNING book_id, title, author, image_url, isbn, description;
     `,[
         book.title,
         book.author,
