@@ -52,9 +52,8 @@ app.get('/api/v1/books/find', (request, response, next) => {
                     return {
                         title: volume.volumeInfo.title,
                         author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : null,
-                        isbn: `${volume.volumeInfo.industryIdentifiers[0].identifier}`,
+                        isbn: volume.volumeInfo.industryIdentifiers ? `${volume.volumeInfo.industryIdentifiers[0].identifier}` : null,
                         image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : null,
-                        description: volume.volumeInfo.description || null
                     };
                 })
             };

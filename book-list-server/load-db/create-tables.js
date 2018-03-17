@@ -7,7 +7,7 @@ client.query(`
         book_id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         author VARCHAR(255) NOT NULL,
-        isbn BIGINT NOT NULL,
+        isbn VARCHAR(30) NOT NULL,
         image_url VARCHAR(255) NOT NULL,
         description TEXT NOT NULL
     );
