@@ -47,15 +47,17 @@ app.get('/api/v1/books/find', (request, response, next) => {
         })
         .then(res => {
             const body = res.body;
+
             const formatted = {
                 books: body.items.map(volume => {
-                    if (!volume.volumeInfo.industryIdentifiers) return null;
-                    if (volume.volumeInfo.industryIdentifiers[0].type !== 'ISBN_10' && volume.volumeInfo.industryIdentifiers[0].type !== 'ISBN_13') return null;
+                    const gBook = volume.volumeInfo;
+                    if (!gBook.industryIdentifiers) return null;
+                    if (gBook.industryIdentifiers[0].type !== 'ISBN_10' && gBook.industryIdentifiers[0].type !== 'ISBN_13') return null;
                     return {
-                        title: volume.volumeInfo.title,
-                        author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : 'no author listed',
-                        isbn: `${volume.volumeInfo.industryIdentifiers[0].identifier}`,
-                        image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : 'assets/book-img-placeholder.png',
+                        title: gBook.title,
+                        author: gBook.authors ? gBook.authors[0] : 'no author listed',
+                        isbn: `${gBook.industryIdentifiers[0].identifier}`,
+                        image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : 'assets/book-img-placeholder.png',
                     };
                 }).filter(Boolean)
             };
