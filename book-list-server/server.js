@@ -57,7 +57,7 @@ app.get('/api/v1/books/find', (request, response, next) => {
                         title: gBook.title,
                         author: gBook.authors ? gBook.authors[0] : 'no author listed',
                         isbn: gBook.industryIdentifiers[0].identifier,
-                        image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : './assets/book-img-placeholder.png',
+                        image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : 'https://rm-kh-book-list.github.io/frontend/project-client/assets/book-img-placeholder.png',
                     };
                 }).filter(Boolean)
             };
@@ -177,7 +177,7 @@ app.put('/api/v1/books/import/:isbn', (request, response, next) => {
                 title: gBook.title,
                 author: gBook.authors ? gBook.authors[0] : 'no author listed',
                 isbn: isbn,
-                image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : './assets/book-img-placeholder.png',
+                image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : 'https://rm-kh-book-list.github.io/frontend/project-client/assets/book-img-placeholder.png',
                 description: gBook.description || 'no description available'
             });
         })
