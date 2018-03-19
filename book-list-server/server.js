@@ -56,7 +56,7 @@ app.get('/api/v1/books/find', (request, response, next) => {
                     return {
                         title: gBook.title,
                         author: gBook.authors ? gBook.authors[0] : 'no author listed',
-                        isbn: `${gBook.industryIdentifiers[0].identifier}`,
+                        isbn: gBook.industryIdentifiers[0].identifier,
                         image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : 'assets/book-img-placeholder.png',
                     };
                 }).filter(Boolean)
@@ -172,12 +172,13 @@ app.put('/api/v1/books/import/:isbn', (request, response, next) => {
         })
         .then(res => {
             const volume = res.body.items[0];
+            const gBook = volume.volumeInfo;
             return insertBook({
-                title: volume.volumeInfo.title,
-                author: volume.volumeInfo.authors ? volume.volumeInfo.authors[0] : 'no author listed',
+                title: gBook.title,
+                author: gBook.authors ? gBook.authors[0] : 'no author listed',
                 isbn: isbn,
-                image_url: volume.volumeInfo.imageLinks ? volume.volumeInfo.imageLinks.thumbnail : 'assets/book-img-placeholder.png',
-                description: volume.volumeInfo.description || 'no description available'
+                image_url: gBook.imageLinks ? gBook.imageLinks.thumbnail : 'assets/book-img-placeholder.png',
+                description: gBook.description || 'no description available'
             });
         })
         .then(result => response.send(result))
